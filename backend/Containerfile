@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# @sha256:9bdfb7d1291dd817822de0fe069373e06663abbefc2664c20bae1ae8f80be4f1 AS build
+
+WORKDIR /App
+
+COPY . ./
+
+RUN dotnet restore
+
+RUN dotnet publish -o out
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# @sha256:cf3e50b742c6cb7c0fe217a1b55d89bcbff312ed8845d3839a1de2a1e9fc956f
+
+WORKDIR /App
+COPY --from=build /App/out .
+ENTRYPOINT ["dotnet", "backend.dll"]
