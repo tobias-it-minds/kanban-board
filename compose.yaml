@@ -2,19 +2,21 @@ services:
   frontend:
     image: localhost/kanban-frontend
     container_name: kf
+    restart: unless-stopped
     ports:
       - "3000:3000"
 
   backend:
     image: localhost/kanban-backend
     container_name: kb
+    restart: unless-stopped
     ports:
       - "8080:8080"
 
   database:
     image: postgres
     container_name: kd
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD=password
     ports:
