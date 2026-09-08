@@ -1,19 +1,28 @@
 services:
-  frontend:
+  web:
     image: localhost/kanban-frontend
     container_name: kf
     restart: unless-stopped
     ports:
       - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - frontend
 
-  backend:
+  api:
     image: localhost/kanban-backend
     container_name: kb
     restart: unless-stopped
     ports:
       - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - database
 
-  database:
+  db:
     image: postgres
     container_name: kd
     restart: unless-stopped
@@ -21,3 +30,9 @@ services:
       POSTGRES_PASSWORD=password
     ports:
       - "5432:5432"
+    networks:
+      - database
+
+networks:
+  frontend:
+  database:
