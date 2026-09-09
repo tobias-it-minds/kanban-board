@@ -1,21 +1,19 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Npgsql;
 
-string host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
-string port = Environment.GetEnvironmentVariable("POSTGRES_PORT");
-string password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-string connectionString = $"Host={host};Port={port};Username=postgres;Password={password};Database=kanban-database";
-await using var connection = new NpgsqlConnection(connectionString);
-await connection.OpenAsync();
+// await using var connection = new NpgsqlConnection(connectionString);
+// await connection.OpenAsync();
+
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = CredentialFactory.FromFile<ServiceAccountCredential>("./firebase-private-key.json").ToGoogleCredential(),
+    ProjectId = "197668053186",
+});
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-
-// builder.Services.AddAuthentication().AddGoogleOpenIdConnect(googleOptions =>
-// {
-//     googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-//     googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-// });
 
 var app = builder.Build();
 
