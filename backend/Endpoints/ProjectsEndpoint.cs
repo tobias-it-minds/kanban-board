@@ -17,7 +17,22 @@ public static class Projects
             string uid = decodedToken.Uid;
             var claims = decodedToken.Claims;
 
-            return await projectService.GetProjectsAsync(UserId);
+            return await projectService.GetProjects(UserId);
+        });
+
+        group.MapPost("/", async (string UserId, string IdToken, string projectName, ProjectService projectService) =>
+        {
+            Console.WriteLine("UserId: " + UserId);
+            Console.WriteLine("IdToken: " + IdToken);
+
+            FirebaseToken decodedToken;
+            decodedToken = await FirebaseAuth.DefaultInstance
+                .VerifyIdTokenAsync(IdToken);
+
+            string uid = decodedToken.Uid;
+            var claims = decodedToken.Claims;
+
+            return await projectService.CreateProject(projectName, uid);
         });
 
         return group;
