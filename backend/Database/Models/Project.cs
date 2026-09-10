@@ -1,3 +1,5 @@
+namespace backend.Database.Models;
+
 public class Project
 {
     public required string Id { get; set; }

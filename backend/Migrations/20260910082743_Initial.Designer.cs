@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using backend.Models;
+using backend.Database;
 
 #nullable disable
 
 namespace backend.Migrations
 {
-    [DbContext(typeof(Database))]
-    [Migration("20260909124019_Initial")]
+    [DbContext(typeof(DatabaseContext))]
+    [Migration("20260910082743_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,7 +24,7 @@ namespace backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Card", b =>
+            modelBuilder.Entity("backend.Database.Models.Card", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -43,7 +43,7 @@ namespace backend.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("Column", b =>
+            modelBuilder.Entity("backend.Database.Models.Column", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -62,7 +62,7 @@ namespace backend.Migrations
                     b.ToTable("Columns");
                 });
 
-            modelBuilder.Entity("Project", b =>
+            modelBuilder.Entity("backend.Database.Models.Project", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -80,26 +80,26 @@ namespace backend.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("Card", b =>
+            modelBuilder.Entity("backend.Database.Models.Card", b =>
                 {
-                    b.HasOne("Column", null)
+                    b.HasOne("backend.Database.Models.Column", null)
                         .WithMany("Cards")
                         .HasForeignKey("ColumnId");
                 });
 
-            modelBuilder.Entity("Column", b =>
+            modelBuilder.Entity("backend.Database.Models.Column", b =>
                 {
-                    b.HasOne("Project", null)
+                    b.HasOne("backend.Database.Models.Project", null)
                         .WithMany("Columns")
                         .HasForeignKey("ProjectId");
                 });
 
-            modelBuilder.Entity("Column", b =>
+            modelBuilder.Entity("backend.Database.Models.Column", b =>
                 {
                     b.Navigation("Cards");
                 });
 
-            modelBuilder.Entity("Project", b =>
+            modelBuilder.Entity("backend.Database.Models.Project", b =>
                 {
                     b.Navigation("Columns");
                 });

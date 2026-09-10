@@ -1,3 +1,5 @@
+namespace backend.Database.Models;
+
 public class Column
 {
     public required string Id { get; set; }

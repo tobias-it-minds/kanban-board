@@ -1,3 +1,5 @@
+namespace backend.Database.Models;
+
 public class Card
 {
     public required string Id { get; set; }

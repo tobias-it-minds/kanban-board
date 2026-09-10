@@ -1,9 +1,7 @@
+using backend.Database;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Npgsql;
-
-// await using var connection = new NpgsqlConnection(connectionString);
-// await connection.OpenAsync();
+using Microsoft.EntityFrameworkCore;
 
 FirebaseApp.Create(new AppOptions()
 {
@@ -14,6 +12,15 @@ FirebaseApp.Create(new AppOptions()
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+
+string connectionString = $@"
+    Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};
+    Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")};
+    Username=postgres;
+    Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")};
+    Database=kanban-database";
+
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
