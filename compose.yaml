@@ -16,10 +16,10 @@ services:
     container_name: kb
     restart: unless-stopped
     environment:
-      ENVIRONMENT=Production
-      POSTGRES_HOST=db
-      POSTGRES_PORT=5432
-      POSTGRES_PASSWORD=password
+      - ENVIRONMENT=Production
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=password
     ports:
       - "5000:5000"
     depends_on:
