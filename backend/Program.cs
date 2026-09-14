@@ -1,29 +1,67 @@
+using System.Text;
 using backend.Database;
 using backend.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
+const string firebaseProjectId = "it-minds-1ade8";
 FirebaseApp.Create(new AppOptions()
 {
     Credential = CredentialFactory.FromFile<ServiceAccountCredential>("./firebase-private-key.json").ToGoogleCredential(),
-    ProjectId = "197668053186",
+    ProjectId = firebaseProjectId,
 });
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
+string? dbHost = Environment.GetEnvironmentVariable("POSTGRES_HOST");
+string? dbPort = Environment.GetEnvironmentVariable("POSTGRES_PORT");
+string? dbPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+
 string connectionString = $@"
-    Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};
-    Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")};
+    Host={dbHost};
+    Port={dbPort};
     Username=postgres;
-    Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")};
+    Password={dbPassword};
     Database=kanban-database";
 
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<ProjectService>();
+
+builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+                    {
+                        policy.AllowAnyOrigin() // TODO: use specific origin
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                    });
+        });
+
+builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+                ValidAudience = firebaseProjectId,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key"))
+            };
+        });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -34,13 +72,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/weatherforecast", () =>
-{
-    return "<h1> test </h1>";
-})
-.WithName("GetWeatherForecast");
+app.UseCors();
+
+app.UseAuthentication();
+// app.UseAuthorization();
 
 app.MapGroup("/projects")
-    .MapProjectsEndpoint();
+    // .RequireAuthorization()
+    .MapProjectsEndpoint()
+    ;
 
 app.Run();

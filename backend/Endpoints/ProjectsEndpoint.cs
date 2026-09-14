@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.Json;
 using backend.Services;
 using FirebaseAdmin.Auth;
 
@@ -5,34 +7,36 @@ public static class Projects
 {
     public static RouteGroupBuilder MapProjectsEndpoint(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (string UserId, string IdToken, ProjectService projectService) =>
+        group.MapGet("/", async (HttpRequest request, ProjectService projectService) =>
         {
-            Console.WriteLine("UserId: " + UserId);
-            Console.WriteLine("IdToken: " + IdToken);
+            var authHeader = request.Headers.Authorization;
+            var idToken = authHeader.ToString().Split(" ")[1];
+            FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-            FirebaseToken decodedToken;
-            decodedToken = await FirebaseAuth.DefaultInstance
-                .VerifyIdTokenAsync(IdToken);
 
-            string uid = decodedToken.Uid;
-            var claims = decodedToken.Claims;
+            var projects = projectService.GetProjects(decodedToken.Uid);
 
-            return await projectService.GetProjects(UserId);
+            return JsonSerializer.Serialize(projects);
         });
 
-        group.MapPost("/", async (string UserId, string IdToken, string projectName, ProjectService projectService) =>
+        group.MapPost("/{projectName}", async (HttpRequest request, string projectName, ProjectService projectService) =>
         {
-            Console.WriteLine("UserId: " + UserId);
-            Console.WriteLine("IdToken: " + IdToken);
+            try
+            {
+                var authHeader = request.Headers.Authorization;
+                var idToken = authHeader.ToString().Split(" ")[1];
+                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-            FirebaseToken decodedToken;
-            decodedToken = await FirebaseAuth.DefaultInstance
-                .VerifyIdTokenAsync(IdToken);
+                await projectService.CreateProject(projectName, decodedToken.Uid);
 
-            string uid = decodedToken.Uid;
-            var claims = decodedToken.Claims;
+                return Results.Ok();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
 
-            return await projectService.CreateProject(projectName, uid);
+                return Results.BadRequest();
+            }
         });
 
         return group;

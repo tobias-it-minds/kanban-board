@@ -12,7 +12,7 @@ public class ProjectService(DatabaseContext db)
         return db.Projects.Where(project => project.OwnerId == UserId).ToList();
     }
 
-    public async Task<IResult> CreateProject(string name, string ownerId)
+    public async Task CreateProject(string name, string ownerId)
     {
         var project = new Project
         {
@@ -21,9 +21,7 @@ public class ProjectService(DatabaseContext db)
             Name = name,
         };
 
-        db.Projects.Add(project);
+        await db.Projects.AddAsync(project);
         await db.SaveChangesAsync();
-
-        return Results.Ok();
     }
 }
