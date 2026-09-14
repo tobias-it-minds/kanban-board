@@ -6,9 +6,10 @@ export const Route = createFileRoute('/login')({
 })
 
 function RouteComponent() {
+  const navigate = Route.useNavigate();
   return (
     <div>
-      <GoogleSignInButton />
+      <GoogleSignInButton onSignIn={() => navigate({ to: "/" })} />
     </div>
   )
 }
