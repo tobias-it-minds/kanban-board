@@ -6,5 +6,5 @@ public class Project
     public required string OwnerId { get; set; }
     public required string Name { get; set; }
 
-    public List<Column> Columns { get; }
+    public ICollection<Column> Columns { get; } = [];
 }

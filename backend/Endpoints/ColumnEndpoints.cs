@@ -3,23 +3,22 @@ using System.Text.Json;
 using backend.Services;
 using FirebaseAdmin.Auth;
 
-public static class Projects
+public static class ColumnEndpoints
 {
-    public static RouteGroupBuilder MapProjectsEndpoint(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapColumnEndpoint(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (HttpRequest request, ProjectService projectService) =>
+        group.MapGet("/", async (HttpRequest request, string projectId, ColumnService columnService) =>
         {
             var authHeader = request.Headers.Authorization;
             var idToken = authHeader.ToString().Split(" ")[1];
             FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
+            var columns = columnService.GetColumns(projectId);
 
-            var projects = projectService.GetProjects(decodedToken.Uid);
-
-            return JsonSerializer.Serialize(projects);
+            return JsonSerializer.Serialize(columns);
         });
 
-        group.MapPost("/{projectName}", async (HttpRequest request, string projectName, ProjectService projectService) =>
+        group.MapPost("/{columnName}", async (HttpRequest request, string projectId, string columnName, ColumnService columnService) =>
         {
             try
             {
@@ -27,7 +26,7 @@ public static class Projects
                 var idToken = authHeader.ToString().Split(" ")[1];
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-                await projectService.CreateProject(projectName, decodedToken.Uid);
+                await columnService.CreateColumn(projectId, columnName);
 
                 return Results.Ok();
             }

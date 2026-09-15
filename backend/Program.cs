@@ -33,6 +33,7 @@ string connectionString = $@"
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<ColumnService>();
 
 builder.Services.AddCors(options =>
         {
@@ -80,6 +81,8 @@ app.UseAuthentication();
 app.MapGroup("/projects")
     // .RequireAuthorization()
     .MapProjectsEndpoint()
+        .MapGroup("{projectId}/columns")
+        .MapColumnEndpoint()
     ;
 
 app.Run();
