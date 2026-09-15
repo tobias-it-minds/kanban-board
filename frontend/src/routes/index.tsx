@@ -1,20 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-
 import { getAuth } from "firebase/auth";
+import { useState } from 'react';
+import { useForm } from '@tanstack/react-form'
 
 type Project = {
   Id: string;
   OwnerId: string;
   Name: string;
 }
-export const Route = createFileRoute('/')({ component: App })
 
 async function getProjects(): Promise<Project[] | undefined> {
   const user = getAuth().currentUser;
-  if (user == null) throw new Error();
+  if (user == null) return;
   const idToken = await user.getIdToken(true);
 
   try {
@@ -31,12 +29,12 @@ async function getProjects(): Promise<Project[] | undefined> {
     return projects;
 
   } catch (error) {
+    console.error("GetProjects() FAILED");
     console.error(error);
   }
-
 }
 
-async function createProject(projectName?: string) {
+async function createProject(projectName: string) {
   const user = getAuth().currentUser;
   if (user == null) return;
   const idToken = await user.getIdToken(true);
@@ -55,111 +53,82 @@ async function createProject(projectName?: string) {
   }
 }
 
+export const Route = createFileRoute('/')({
+  loader: () => getProjects(),
+  pendingComponent: () => 'Loading...',
+  component: App,
+})
+
+export function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
+  if (isLoggedIn) {
+    return <button onClick={() => {
+      getAuth().signOut();
+      setIsLoggedIn(false)
+      //TODO: remove cached data
+    }}>Logout</button>
+  } else {
+    return <Link to="/login">Login</Link>
+  }
+}
+
 function App() {
-  // localStorage.getItem
+  const projects = Route.useLoaderData();
+  const [isLoggedIn, setIsLoggedIn] = useState(getAuth().currentUser != null);
 
-  // const [token, setToken] = useState(null);
-  // useEffect(() => {
-  //   const auth = getAuth();
-  //   const user = auth.currentUser;
-  //   // var idToken: string | null = null;
-  //   if (user != null) {
-  //     (async () => {
-  //     setToken(await user.getIdToken(true));
-  //     })()
-  //   } else {
-  //     setToken(null);
-  //   }
-  // }, [token]);
-
-  // const navigate = Route.useNavigate();
-  // navigate({ to: "/login" });
-
-  const { data, isSuccess, isPending, error } = useQuery({
-    queryKey: ['fetch-projects'],
-    queryFn: () => getProjects()
-    // queryFn: () => Promise.resolve(5),
-  })
-
-  if (error) {
-    return 'An error has occurred: ' + error.message
-  }
-
-
-  if (isPending) {
-    return 'Loading...'
-  }
-
-
-  if (isSuccess) {
-    return (<ul>
-      {data?.map((project) => (
-        <Link to="/projects/${project.Id}"><li key={project.Id}>{project.Name}</li></Link>
-      ))}
-    </ul>)
-  }
-  // A component was suspended by an uncached promise. Creating promises inside a Client Component or hook is not yet supported, except via a Suspense-compatible library or framework.
-
-  // const createProjectForm = useForm({
-  //   defaultValues: {
-  //     projectName: 'DefaultProjectName',
-  //   },
-  //   onSubmit: async ({ value }) => {
-  //     createProject("TANSTACK");
-  //     console.log(value);
-  //   },
-  // })
-
+  const form = useForm({
+    defaultValues: {
+      projectName: '',
+    },
+    onSubmit: async (data) => {
+      createProject(data.value.projectName);
+    },
+  });
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
-      <Link to="/login">Login</Link>
-      <br /> <br />
-      <button onClick={() => getAuth().signOut()}>Logout</button>
-      <br /> <br />
-      <button onClick={() => createProject("newProject")}>Create Project</button>
-      <br /> <br />
-      <button onClick={() => getProjects()}>Get Projects</button>
+
+      <LoginButton isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+
       <br /> <br />
 
-      {/*
-      <ul>
-        {data?.map((todo) => (
-          <li key={todo.id}>{todo.title}</li>
-        ))}
-      </ul>
-      */}
-
-      {/*
-      <form onSubmit={(e) => {
-        createProjectForm.handleSubmit()
-        console.log(e);
-      }}>
-        <createProjectForm.Field name="projectName" children={(field) => {
-          return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
+        }}
+      >
+        <form.Field
+          name='projectName'
+          children={(field) => {
+            return (
+              <>
+                <label>Project Name: </label>
+                <input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </>
+            )
+          }}
+        />
+        <form.Subscribe
+          children={() =>
             <>
-              <input
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-              />
-              <br />
+              <button type='submit'>Create Project</button>
             </>
-          )
-        }} />
-        <createProjectForm.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
-          children={([canSubmit, isSubmitting]) => (
-            <>
-              <button type="submit" disabled={!canSubmit}>
-                {isSubmitting ? '...' : 'Submit'}
-              </button>
-            </>
-          )}
+          }
         />
       </form>
-      */}
+
+      <ul>
+        {projects?.map((project) => (
+          <Link to="/projects/$projectId" key={project.Id} params={{ projectId: project.Id }}>
+            <li>{project.Name}</li>
+          </Link>
+        ))}
+      </ul>
 
     </main >
   )
