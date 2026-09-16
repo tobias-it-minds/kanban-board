@@ -9,8 +9,6 @@ import { FirebaseUIProvider } from '@firebase-oss/ui-react';
 
 import { app, ui } from '../../firebaseconfig'
 
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
-
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return <FirebaseUIProvider ui={ui}>{children}</FirebaseUIProvider>;
 }
@@ -46,12 +44,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <FirebaseUIProvider ui={ui}>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
           <HeadContent />
         </head>
-        <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
+        <body className="font-inter antialiased bg-[var(--page-bg)]  text-[var(--primary)]">
           <QueryClientProvider client={queryClient}>
             {children}
+            {/*
             <TanStackDevtools
               config={{
                 position: 'bottom-right',
@@ -63,6 +61,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 },
               ]}
             />
+            */}
           </QueryClientProvider>
           <Scripts />
         </body>

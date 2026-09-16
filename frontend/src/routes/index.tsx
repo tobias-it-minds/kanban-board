@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { getAuth } from "firebase/auth";
 import { useState } from 'react';
@@ -61,7 +61,7 @@ export const Route = createFileRoute('/')({
 
 function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
   if (isLoggedIn) {
-    return <button onClick={() => {
+    return <button className='' onClick={() => {
       getAuth().signOut();
       setIsLoggedIn(false)
       //TODO: remove cached data (queryClient.invalidateQueries()?)
@@ -72,9 +72,10 @@ function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIs
 }
 
 function App() {
-  const projects = Route.useLoaderData();
-
   const [isLoggedIn, setIsLoggedIn] = useState(getAuth().currentUser != null);
+  // if (!isLoggedIn) throw redirect({ to: '/login' });
+
+  const projects = Route.useLoaderData();
 
   const router = useRouter();
 
@@ -88,52 +89,57 @@ function App() {
     },
   });
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main >
+      <nav className='w-[var(--width)] h-[50px] flex flex-row place-content-between m-auto'>
+        <h1>Kanvas</h1>
+        <LoginButton isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      </nav>
 
-      <LoginButton isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <hr className='text-[var(--border)]' />
 
-      <br /> <br />
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          form.handleSubmit()
-        }}
-      >
-        <form.Field
-          name='projectName'
-          children={(field) => {
-            return (
-              <>
-                <label>Project Name: </label>
-                <input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-              </>
-            )
+      <div className='w-[var(--width)] m-auto'>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
           }}
-        />
-        <form.Subscribe
-          children={() =>
-            <>
-              <button type='submit'>Create Project</button>
-            </>
-          }
-        />
-      </form>
+        >
+          <form.Field
+            name='projectName'
+            children={(field) => {
+              return (
+                <>
+                  <label>Project Name: </label>
+                  <input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                </>
+              )
+            }}
+          />
+          <form.Subscribe
+            children={() =>
+              <>
+                <button type='submit'>Create Project</button>
+              </>
+            }
+          />
+        </form>
 
-      <ul>
-        {projects?.map((project) => (
-          <Link to="/projects/$projectId" key={project.Id} params={{ projectId: project.Id }}>
-            <li>{project.Name}</li>
-          </Link>
-        ))}
-      </ul>
-
+        <ul className='grid grid-cols-2 gap-[30px]'>
+          {projects?.map((project) => (
+            <Link to="/projects/$projectId" key={project.Id} params={{ projectId: project.Id }}>
+              <div>
+                <li className='bg-[var(--card-bg)] w-[484px] h-[159px] border-[var(--border)] border-3 border rounded-[16px]'>{project.Name}</li>
+              </div>
+            </Link>
+          ))}
+        </ul>
+      </div>
     </main >
   )
 }

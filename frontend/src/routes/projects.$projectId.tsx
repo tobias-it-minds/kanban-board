@@ -125,8 +125,9 @@ function RouteComponent() {
   });
 
   return (
-    <div>
+    <main className='h-[100vh] bg-[var(--column-bg)]'>
       <form
+        className='h-[56px] border rounded-[16px] border-[var(--border)]'
         onSubmit={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -156,14 +157,14 @@ function RouteComponent() {
         />
       </form>
 
-      <ul>
+      <ul className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]'>
         {columns?.map((column) => (
-          <div key={column.Id}>
+          <div key={column.Id} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
             <br />
-            <li >{column.Name}</li>
+            <li className='border rounded-[16px] border-[var(--border)] m-[8px] p-[8px]'>{column.Name}</li>
             <ul>
               {column.Cards.map((card) => (
-                <li key={card.Id}>{card.Content}</li>
+                <li key={card.Id} className='border border-[var(--border)] rounded-[16px] m-[8px] p-[8px]'>{card.Content}</li>
               ))}
             </ul>
 
@@ -200,7 +201,6 @@ function RouteComponent() {
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
                   />}
               />
               <cardForm.Subscribe
@@ -212,6 +212,6 @@ function RouteComponent() {
           </div>
         ))}
       </ul>
-    </div>
+    </main>
   )
 }
