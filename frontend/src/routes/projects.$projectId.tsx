@@ -68,7 +68,10 @@ async function getColumns(projectId: string): Promise<Column[] | undefined> {
 
 async function createCard(projectId: string, columnId: string, content: string) {
   const user = getAuth().currentUser;
-  if (user == null) return;
+  if (user == null) {
+    console.log("User is not logged in")
+    return;
+  }
   const idToken = await user.getIdToken(true);
 
   try {
@@ -79,6 +82,7 @@ async function createCard(projectId: string, columnId: string, content: string) 
         "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
         "Authorization": `Bearer ${idToken}`
       }
+      // TODO: add body
     });
   } catch (error) {
     console.error(error);
@@ -99,12 +103,23 @@ function RouteComponent() {
 
   const router = useRouter();
 
-  const form = useForm({
+  const columnForm = useForm({
     defaultValues: {
       columnName: '',
     },
     onSubmit: async (data) => {
       await createColumn(projectId, data.value.columnName);
+      router.invalidate();
+    },
+  });
+
+  const cardForm = useForm({
+    defaultValues: {
+      cardContent: '',
+      columnId: '',
+    },
+    onSubmit: async (data) => {
+      await createCard(projectId, data.value.columnId, data.value.cardContent);
       router.invalidate();
     },
   });
@@ -115,10 +130,10 @@ function RouteComponent() {
         onSubmit={(e) => {
           e.preventDefault()
           e.stopPropagation()
-          form.handleSubmit()
+          columnForm.handleSubmit()
         }}
       >
-        <form.Field
+        <columnForm.Field
           name='columnName'
           children={(field) => {
             return (
@@ -134,7 +149,7 @@ function RouteComponent() {
             )
           }}
         />
-        <form.Subscribe
+        <columnForm.Subscribe
           children={() =>
             <button type='submit'>Create Column</button>
           }
@@ -151,7 +166,49 @@ function RouteComponent() {
                 <li key={card.Id}>{card.Content}</li>
               ))}
             </ul>
-            <button onClick={() => createCard(projectId, column.Id, "cardContent")}>New Card</button>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                cardForm.handleSubmit()
+              }}
+            >
+              <cardForm.Field
+                name='cardContent'
+                children={(field) => {
+                  return (
+                    <>
+                      <label>Card Name: </label>
+                      <input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                      />
+                    </>
+                  )
+                }}
+              />
+              <cardForm.Field
+                name='columnId'
+                defaultValue={column.Id}
+                children={(field) =>
+                  <input
+                    hidden
+                    readOnly
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />}
+              />
+              <cardForm.Subscribe
+                children={() =>
+                  <button type='submit'>Create Card</button>
+                }
+              />
+            </form>
           </div>
         ))}
       </ul>
