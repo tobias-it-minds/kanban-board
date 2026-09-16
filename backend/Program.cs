@@ -34,6 +34,7 @@ builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(conn
 
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ColumnService>();
+builder.Services.AddScoped<CardService>();
 
 builder.Services.AddCors(options =>
         {
@@ -83,6 +84,8 @@ app.MapGroup("/projects")
     .MapProjectsEndpoint()
         .MapGroup("{projectId}/columns")
         .MapColumnEndpoint()
+            .MapGroup("{columnId}/cards")
+            .MapCardEndpoint()
     ;
 
 app.Run();

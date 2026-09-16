@@ -3,26 +3,22 @@ using System.Text.Json;
 using backend.Services;
 using FirebaseAdmin.Auth;
 
-public static class ProjectsEndpoint
+public static class CardEndpoints
 {
-    public static RouteGroupBuilder MapProjectsEndpoint(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapCardEndpoint(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (HttpRequest request, ProjectService projectService) =>
+        group.MapGet("/", async (HttpRequest request, string projectId, CardService cardService) =>
         {
             var authHeader = request.Headers.Authorization;
             var idToken = authHeader.ToString().Split(" ")[1];
             FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-            var projects = projectService.GetProjects(decodedToken.Uid);
+            var cards = cardService.GetCards(projectId);
 
-            var jsonProjects = JsonSerializer.Serialize(projects);
-
-            Console.WriteLine($"Get Projects: {jsonProjects}");
-
-            return jsonProjects;
+            return JsonSerializer.Serialize(cards);
         });
 
-        group.MapPost("/{projectName}", async (HttpRequest request, string projectName, ProjectService projectService) =>
+        group.MapPost("/{content}", async (HttpRequest request, string projectId, string columnId, string content, CardService cardService) =>
         {
             try
             {
@@ -30,9 +26,7 @@ public static class ProjectsEndpoint
                 var idToken = authHeader.ToString().Split(" ")[1];
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-                await projectService.CreateProject(projectName, decodedToken.Uid);
-
-                Console.WriteLine($"User '{idToken}' added project '{projectName}'");
+                await cardService.CreateCard(columnId, content);
 
                 return Results.Ok();
             }

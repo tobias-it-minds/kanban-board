@@ -1,5 +1,6 @@
 using backend.Database;
 using backend.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
@@ -9,9 +10,9 @@ public class ColumnService(DatabaseContext db)
 
     public async Task<List<Column>> GetColumns(string projectId)
     {
-        var columns = db.Columns.Where(column => column.ProjectId == projectId);
-
-        Console.WriteLine(columns);
+        var columns = db.Columns
+            .Where(column => column.ProjectId == projectId)
+            .Include(columns => columns.Cards);
 
         return columns.ToList();
     }
