@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { getAuth } from 'firebase/auth';
+import { useForm } from '@tanstack/react-form'
 
 type Card = {
   Id: string;
@@ -13,13 +14,17 @@ type Column = {
   Cards: Card[];
 }
 
-async function createColumn(projectId: string) {
+async function createColumn(projectId: string, columnName: string) {
+  console.log("from create column")
   const user = getAuth().currentUser;
-  if (user == null) return;
+  if (user == null) {
+    console.log("User is not logged in")
+    return;
+  }
   const idToken = await user.getIdToken(true);
 
   try {
-    await fetch(`http://localhost:5001/projects/${projectId}/columns/newColumn`, {
+    const response = await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnName}`, {
       method: "POST",
       headers: {
         "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
@@ -27,6 +32,9 @@ async function createColumn(projectId: string) {
         "Authorization": `Bearer ${idToken}`
       }
     });
+
+    console.log("createColumn response: ", response);
+
   } catch (error) {
     console.error(error);
   }
@@ -49,7 +57,7 @@ async function getColumns(projectId: string): Promise<Column[] | undefined> {
 
     var columns: Column[] = await response.json();
 
-    console.log(`Columns: ${columns}`);
+    console.log("Columns: ", columns);
 
     return columns;
 
@@ -83,19 +91,60 @@ export const Route = createFileRoute('/projects/$projectId')({
   component: RouteComponent,
 })
 
+
 function RouteComponent() {
   const { projectId } = Route.useParams();
 
-  var columns = Route.useLoaderData();
+  const columns = Route.useLoaderData();
+
+  const router = useRouter();
+
+  const form = useForm({
+    defaultValues: {
+      columnName: '',
+    },
+    onSubmit: async (data) => {
+      await createColumn(projectId, data.value.columnName);
+      router.invalidate();
+    },
+  });
 
   return (
     <div>
-      <div>Hello "/projects/$projectId"!</div>
-      <br /> <br />
-      <button onClick={() => createColumn(projectId)}>Create Column</button>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
+        }}
+      >
+        <form.Field
+          name='columnName'
+          children={(field) => {
+            return (
+              <>
+                <label>Column Name: </label>
+                <input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </>
+            )
+          }}
+        />
+        <form.Subscribe
+          children={() =>
+            <button type='submit'>Create Column</button>
+          }
+        />
+      </form>
+
       <ul>
         {columns?.map((column) => (
           <div key={column.Id}>
+            <br />
             <li >{column.Name}</li>
             <ul>
               {column.Cards.map((card) => (

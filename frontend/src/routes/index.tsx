@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { getAuth } from "firebase/auth";
 import { useState } from 'react';
@@ -59,12 +59,12 @@ export const Route = createFileRoute('/')({
   component: App,
 })
 
-export function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
+function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
   if (isLoggedIn) {
     return <button onClick={() => {
       getAuth().signOut();
       setIsLoggedIn(false)
-      //TODO: remove cached data
+      //TODO: remove cached data (queryClient.invalidateQueries()?)
     }}>Logout</button>
   } else {
     return <Link to="/login">Login</Link>
@@ -73,14 +73,18 @@ export function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean
 
 function App() {
   const projects = Route.useLoaderData();
+
   const [isLoggedIn, setIsLoggedIn] = useState(getAuth().currentUser != null);
+
+  const router = useRouter();
 
   const form = useForm({
     defaultValues: {
       projectName: '',
     },
     onSubmit: async (data) => {
-      createProject(data.value.projectName);
+      await createProject(data.value.projectName);
+      router.invalidate();
     },
   });
   return (
