@@ -1,8 +1,10 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { getAuth } from 'firebase/auth';
 import { useForm } from '@tanstack/react-form'
 import { Column } from '#/components/Column';
 import type { ColumnData } from '#/types/column';
+
+import { Reorder } from "motion/react"
 
 async function createColumn(projectId: string, columnName: string) {
   console.log("from create column")
@@ -82,43 +84,48 @@ function RouteComponent() {
 
   return (
     <main className='h-[100vh] bg-[var(--column-bg)]'>
-      <form
-        className='h-[56px] border rounded-[16px] border-[var(--border)]'
-        onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          columnForm.handleSubmit()
-        }}
-      >
-        <columnForm.Field
-          name='columnName'
-          children={(field) => {
-            return (
-              <>
-                <label>Column Name: </label>
-                <input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-              </>
-            )
-          }}
-        />
-        <columnForm.Subscribe
-          children={() =>
-            <button type='submit'>Create Column</button>
-          }
-        />
-      </form>
+      <nav className='h-[56px] flex flex-row border border-[var(--border)]'>
+        <Link className='my-auto mx-[16px] text-[20px] text-[var(--tertiary)] font-bold' to='/'>&#60;</Link>
+        <h1 className='my-auto'>project.name</h1>
+      </nav>
 
-      <ul className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]'>
+      <Reorder.Group className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]' values={columns} onReorder={() => { }}>
         {columns?.map((column) => (
           <Column key={column.Id} column={column} projectId={projectId} invalidate={router.invalidate} />
         ))}
-      </ul>
-
+      </Reorder.Group>
+      <div className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
+        <form
+          className='border rounded-[16px] border-[var(--border)]'
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            columnForm.handleSubmit()
+          }}
+        >
+          <columnForm.Field
+            name='columnName'
+            children={(field) => {
+              return (
+                <>
+                  <label>Column Name: </label>
+                  <input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                </>
+              )
+            }}
+          />
+          <columnForm.Subscribe
+            children={() =>
+              <button type='submit'>Create Column</button>
+            }
+          />
+        </form>
+      </div>
     </main>
   )
 }

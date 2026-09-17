@@ -61,13 +61,13 @@ export const Route = createFileRoute('/')({
 
 function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
   if (isLoggedIn) {
-    return <button className='' onClick={() => {
+    return <button className='my-auto' onClick={() => {
       getAuth().signOut();
       setIsLoggedIn(false)
       //TODO: remove cached data (queryClient.invalidateQueries()?)
     }}>Logout</button>
   } else {
-    return <Link to="/login">Login</Link>
+    return <Link className='my-auto' to="/login">Login</Link>
   }
 }
 
@@ -84,6 +84,12 @@ function App() {
       projectName: '',
     },
     onSubmit: async (data) => {
+      // let newProject: Project = {
+      //   Id = "placeholder",
+      //   Name = data.value.projectName,
+      //   OwnerId = "placeholder",
+      // }
+      // queryClient.setQueryData(['todos'], todos)
       await createProject(data.value.projectName);
       router.invalidate();
     },
@@ -91,7 +97,7 @@ function App() {
   return (
     <main >
       <nav className='w-[var(--width)] h-[50px] flex flex-row place-content-between m-auto'>
-        <h1>Kanvas</h1>
+        <h1 className='app-name my-auto'>Kanvas</h1>
         <LoginButton isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
       </nav>
 
@@ -130,11 +136,20 @@ function App() {
           />
         </form>
 
+        <div className='flex place-content-between  my-[12px]'>
+          <h1 className='section-heading'>Projects</h1>
+          <h1 className='section-heading text-[var(--brand)]'>+ New project</h1>
+        </div>
         <ul className='grid grid-cols-2 gap-[30px]'>
           {projects?.map((project) => (
             <Link to="/projects/$projectId" key={project.Id} params={{ projectId: project.Id }}>
               <div>
-                <li className='bg-[var(--card-bg)] w-[484px] h-[159px] border-[var(--border)] border-3 border rounded-[16px]'>{project.Name}</li>
+                <li className='bg-[var(--card-bg)] h-[159px] border-[var(--border)] border-1 border rounded-[16px]'>
+                  <div className='m-[16px]'>
+                    <h1 className='font-[600] h-[16px] mb-[16px]'>{project.Name}</h1>
+                    <p className='text-[var(--tertiary)] text-[14px]'>Description...</p>
+                  </div>
+                </li>
               </div>
             </Link>
           ))}

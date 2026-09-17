@@ -37,7 +37,7 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (

@@ -7,9 +7,15 @@ export const Route = createFileRoute('/login')({
 
 function RouteComponent() {
   const navigate = Route.useNavigate();
+
   return (
-    <div>
-      <GoogleSignInButton onSignIn={() => navigate({ to: "/" })} />
-    </div>
+    <main className='w-[384px] m-auto'>
+      <br />
+      <h1>Welcome</h1>
+      <br />
+      <div className='flex flex-col'>
+        <GoogleSignInButton onSignIn={() => navigate({ to: "/" })} />
+      </div>
+    </main>
   )
 }

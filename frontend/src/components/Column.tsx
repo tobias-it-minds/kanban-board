@@ -1,6 +1,7 @@
 import type { CardData, ColumnData } from '#/types/column';
 import { useForm } from '@tanstack/react-form'
 import { getAuth } from 'firebase/auth';
+import { Reorder } from "motion/react"
 
 async function createCard(projectId: string, columnId: string, content: string) {
   const user = getAuth().currentUser;
@@ -40,12 +41,17 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
   });
 
   return (
-    <div className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
+    <Reorder.Item as="div" value={column} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
       <br />
-      <li className='border rounded-[16px] border-[var(--border)] m-[8px] p-[8px]'>{column.Name}</li>
+      <div className='bg-[var(--todo-bg)] h-[50px] border rounded-[16px] border-[var(--border)] my-[16px] mx-[12px] flex flex-row place-content-between opacity-[94%]'>
+        <h1 className='column-title my-auto tracking-[0.35px] ml-[24px]'>{column.Name}</h1>
+        <button>
+          <div className='text-[var(--todo)] mr-[24px] text-[20px]'>+</div>
+        </button>
+      </div>
       <ul>
         {column.Cards.map((card: CardData) => (
-          <li key={card.Id} className='border border-[var(--border)] rounded-[16px] m-[8px] p-[8px]'>{card.Content}</li>
+          <li key={card.Id} className='border bg-[var(--card-bg)] border-[var(--border)] rounded-[16px] m-[12px] p-[8px]'>{card.Content}</li>
         ))}
       </ul>
 
@@ -90,6 +96,6 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
           }
         />
       </form>
-    </div>
+    </Reorder.Item>
   )
 }
