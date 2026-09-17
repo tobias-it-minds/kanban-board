@@ -1,18 +1,8 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { getAuth } from 'firebase/auth';
 import { useForm } from '@tanstack/react-form'
-
-type Card = {
-  Id: string;
-  Content: string;
-  ColumnId: string;
-}
-
-type Column = {
-  Id: string;
-  Name: string;
-  Cards: Card[];
-}
+import { Column } from '#/components/Column';
+import type { ColumnData } from '#/types/column';
 
 async function createColumn(projectId: string, columnName: string) {
   console.log("from create column")
@@ -40,7 +30,7 @@ async function createColumn(projectId: string, columnName: string) {
   }
 }
 
-async function getColumns(projectId: string): Promise<Column[] | undefined> {
+async function getColumns(projectId: string): Promise<ColumnData[] | undefined> {
   const user = getAuth().currentUser;
   if (user == null) {
     console.log("User is not logged in")
@@ -55,35 +45,12 @@ async function getColumns(projectId: string): Promise<Column[] | undefined> {
       }
     });
 
-    var columns: Column[] = await response.json();
+    var columns: ColumnData[] = await response.json();
 
     console.log("Columns: ", columns);
 
     return columns;
 
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function createCard(projectId: string, columnId: string, content: string) {
-  const user = getAuth().currentUser;
-  if (user == null) {
-    console.log("User is not logged in")
-    return;
-  }
-  const idToken = await user.getIdToken(true);
-
-  try {
-    await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnId}/cards/${content}`, {
-      method: "POST",
-      headers: {
-        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
-        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
-        "Authorization": `Bearer ${idToken}`
-      }
-      // TODO: add body
-    });
   } catch (error) {
     console.error(error);
   }
@@ -99,7 +66,7 @@ export const Route = createFileRoute('/projects/$projectId')({
 function RouteComponent() {
   const { projectId } = Route.useParams();
 
-  const columns = Route.useLoaderData();
+  const columns: ColumnData[] = Route.useLoaderData();
 
   const router = useRouter();
 
@@ -109,17 +76,6 @@ function RouteComponent() {
     },
     onSubmit: async (data) => {
       await createColumn(projectId, data.value.columnName);
-      router.invalidate();
-    },
-  });
-
-  const cardForm = useForm({
-    defaultValues: {
-      cardContent: '',
-      columnId: '',
-    },
-    onSubmit: async (data) => {
-      await createCard(projectId, data.value.columnId, data.value.cardContent);
       router.invalidate();
     },
   });
@@ -159,59 +115,10 @@ function RouteComponent() {
 
       <ul className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]'>
         {columns?.map((column) => (
-          <div key={column.Id} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
-            <br />
-            <li className='border rounded-[16px] border-[var(--border)] m-[8px] p-[8px]'>{column.Name}</li>
-            <ul>
-              {column.Cards.map((card) => (
-                <li key={card.Id} className='border border-[var(--border)] rounded-[16px] m-[8px] p-[8px]'>{card.Content}</li>
-              ))}
-            </ul>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                cardForm.handleSubmit()
-              }}
-            >
-              <cardForm.Field
-                name='cardContent'
-                children={(field) => {
-                  return (
-                    <>
-                      <label>Card Name: </label>
-                      <input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                    </>
-                  )
-                }}
-              />
-              <cardForm.Field
-                name='columnId'
-                defaultValue={column.Id}
-                children={(field) =>
-                  <input
-                    hidden
-                    readOnly
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                  />}
-              />
-              <cardForm.Subscribe
-                children={() =>
-                  <button type='submit'>Create Card</button>
-                }
-              />
-            </form>
-          </div>
+          <Column key={column.Id} column={column} projectId={projectId} invalidate={router.invalidate} />
         ))}
       </ul>
+
     </main>
   )
 }
