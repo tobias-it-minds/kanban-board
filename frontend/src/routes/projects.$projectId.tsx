@@ -5,6 +5,7 @@ import { Column } from '#/components/Column';
 import type { ColumnData } from '#/types/column';
 
 import { Reorder } from "motion/react"
+import { useState } from 'react';
 
 async function createColumn(projectId: string, columnName: string) {
   console.log("from create column")
@@ -69,6 +70,7 @@ function RouteComponent() {
   const { projectId } = Route.useParams();
 
   const columns: ColumnData[] = Route.useLoaderData();
+  const [orderedColumns, setOrderedColumns] = useState(columns)
 
   const router = useRouter();
 
@@ -89,8 +91,8 @@ function RouteComponent() {
         <h1 className='my-auto'>project.name</h1>
       </nav>
 
-      <Reorder.Group className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]' values={columns} onReorder={() => { }}>
-        {columns?.map((column) => (
+      <Reorder.Group axis='x' className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]' values={orderedColumns} onReorder={setOrderedColumns}>
+        {orderedColumns?.map((column) => (
           <Column key={column.Id} column={column} projectId={projectId} invalidate={router.invalidate} />
         ))}
       </Reorder.Group>

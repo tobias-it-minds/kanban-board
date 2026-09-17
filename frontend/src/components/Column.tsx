@@ -2,6 +2,7 @@ import type { CardData, ColumnData } from '#/types/column';
 import { useForm } from '@tanstack/react-form'
 import { getAuth } from 'firebase/auth';
 import { Reorder } from "motion/react"
+import { useState } from 'react';
 
 async function createCard(projectId: string, columnId: string, content: string) {
   const user = getAuth().currentUser;
@@ -40,6 +41,8 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
     },
   });
 
+  const [orderedCards, setOrderedCards] = useState(column.Cards);
+
   return (
     <Reorder.Item as="div" value={column} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
       <br />
@@ -50,9 +53,17 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
         </button>
       </div>
       <ul>
-        {column.Cards.map((card: CardData) => (
-          <li key={card.Id} className='border bg-[var(--card-bg)] border-[var(--border)] rounded-[16px] m-[12px] p-[8px]'>{card.Content}</li>
-        ))}
+        <Reorder.Group axis='y' values={orderedCards} onReorder={setOrderedCards} >
+          {orderedCards.map((card: CardData) => (
+            <Reorder.Item as="div" value={card}>
+              <li key={card.Id} className='border bg-[var(--card-bg)] border-[var(--border)] rounded-[16px] m-[12px] p-[8px]'>
+                <h3>
+                  {card.Content}
+                </h3>
+              </li>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
       </ul>
 
       <form
