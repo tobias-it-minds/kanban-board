@@ -1,8 +1,17 @@
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect, useRouter } from '@tanstack/react-router'
 import { getAuth } from "firebase/auth";
 import { useState } from 'react';
 import { useForm } from '@tanstack/react-form'
+
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 type Project = {
   Id: string;
@@ -73,7 +82,6 @@ function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIs
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(getAuth().currentUser != null);
-  // if (!isLoggedIn) throw redirect({ to: '/login' });
 
   const projects = Route.useLoaderData();
 
@@ -136,10 +144,11 @@ function App() {
           />
         </form>
 
-        <div className='flex place-content-between  my-[12px]'>
+        <div className='flex place-content-between  my-[16px]'>
           <h1 className='section-heading'>Projects</h1>
           <h1 className='section-heading text-[var(--brand)]'>+ New project</h1>
         </div>
+
         <ul className='grid grid-cols-2 gap-[30px]'>
           {projects?.map((project) => (
             <Link to="/projects/$projectId" key={project.Id} params={{ projectId: project.Id }}>
@@ -154,6 +163,7 @@ function App() {
             </Link>
           ))}
         </ul>
+
       </div>
     </main >
   )
