@@ -1,45 +1,20 @@
-import type { CardData, ColumnData } from '#/types/column';
+import type { CardData, ColumnData, ColumnForm } from '#/types/column';
 import { useForm } from '@tanstack/react-form'
-import { getAuth } from 'firebase/auth';
 import { Reorder } from "motion/react"
 import { useState } from 'react';
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardAction, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 
-async function createCard(projectId: string, columnId: string, content: string) {
-  const user = getAuth().currentUser;
-  if (user == null) {
-    console.log("User is not logged in")
-    return;
+
+export function Column({ column, onSubmit }: { column: ColumnData, onSubmit: (data: ColumnForm) => void }) {
+  const defaultColumnForm: ColumnForm = {
+    cardContent: '',
+    columnId: '',
   }
-  const idToken = await user.getIdToken(true);
-
-  try {
-    await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnId}/cards/${content}`, {
-      method: "POST",
-      headers: {
-        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
-        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
-        "Authorization": `Bearer ${idToken}`
-      }
-      // TODO: add body
-    });
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-
-// , onSubmit: () => Promise<void>
-export function Column({ column, projectId, invalidate }: { column: ColumnData, projectId: string, invalidate: () => Promise<void> }) {
   const cardForm = useForm({
-    defaultValues: {
-      cardContent: '',
-      columnId: '',
-    },
+    defaultValues: defaultColumnForm,
     onSubmit: async (data) => {
-      await createCard(projectId, data.value.columnId, data.value.cardContent);
-      invalidate();
+      onSubmit(data.value)
     },
   });
 
@@ -57,7 +32,7 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
 
         <ul>
           <Reorder.Group axis='y' values={orderedCards} onReorder={setOrderedCards} >
-            {orderedCards.map((card: CardData) => (
+            {column.Cards.map((card: CardData) => (
               <Reorder.Item as="div" value={card}>
 
                 <li key={card.Id} className='my-[8px]'>

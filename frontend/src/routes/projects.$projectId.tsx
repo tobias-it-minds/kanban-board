@@ -2,14 +2,38 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { getAuth } from 'firebase/auth';
 import { useForm } from '@tanstack/react-form'
 import { Column } from '#/components/Column';
-import type { ColumnData } from '#/types/column';
+import type { ColumnData, ProjectData } from '#/types/column';
 
 import { Reorder } from "motion/react"
 import { useState } from 'react';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import { Button } from '#/components/ui/button';
-import { ChevronLeftIcon, PlusIcon } from 'lucide-react';
+import { ChevronLeftIcon, Ellipsis, PlusIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '#/components/ui/dialog';
+import { useQuery } from '@tanstack/react-query';
+
+async function createCard(projectId: string, columnId: string, content: string) {
+  const user = getAuth().currentUser;
+  if (user == null) {
+    console.log("User is not logged in")
+    return;
+  }
+  const idToken = await user.getIdToken(true);
+
+  try {
+    await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnId}/cards/${content}`, {
+      method: "POST",
+      headers: {
+        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
+        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
+        "Authorization": `Bearer ${idToken}`
+      }
+      // TODO: add body
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 async function createColumn(projectId: string, columnName: string) {
   console.log("from create column")
@@ -63,6 +87,33 @@ async function getColumns(projectId: string): Promise<ColumnData[] | undefined> 
   }
 }
 
+async function getProject(projectId: string): Promise<ProjectData | undefined> {
+  const user = getAuth().currentUser;
+  if (user == null) {
+    console.log("User is not logged in")
+    return;
+  }
+  const idToken = await user.getIdToken(true);
+
+  try {
+    var response = await fetch(`http://localhost:5001/project/${projectId}`, {
+      headers: {
+        "Authorization": `Bearer ${idToken}`
+      }
+    });
+    console.log("Project: ", response);
+
+    var project: ProjectData = await response.json();
+
+    console.log("Project: ", project);
+
+    return project;
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export const Route = createFileRoute('/projects/$projectId')({
   loader: ({ params }) => getColumns(params.projectId),
   pendingComponent: () => "Loading...",
@@ -73,8 +124,14 @@ export const Route = createFileRoute('/projects/$projectId')({
 function RouteComponent() {
   const { projectId } = Route.useParams();
 
+  const { isPending, error, data } = useQuery({
+    queryKey: ['project'],
+    queryFn: () => getProject(projectId),
+  })
+
   const columns: ColumnData[] = Route.useLoaderData();
-  const [orderedColumns, setOrderedColumns] = useState(columns)
+
+  const [orderedColumns, setOrderedColumns] = useState(columns);
 
   const router = useRouter();
 
@@ -94,12 +151,20 @@ function RouteComponent() {
         <Link className='my-auto mx-[16px] text-[20px] text-[var(--tertiary)] font-bold' to='/'>
           <ChevronLeftIcon />
         </Link>
-        <h1 className='my-auto'>project.name</h1>
+        {data ? (
+          <h1 className='my-auto'>{data?.Name}</h1>
+        ) : (
+          <h1 className='my-auto'>Loading...</h1>
+        )}
+        <Ellipsis className='text-white my-auto mr-[24px] ml-auto' />
       </nav>
 
       <Reorder.Group axis='x' className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]' values={orderedColumns} onReorder={setOrderedColumns}>
-        {orderedColumns?.map((column) => (
-          <Column key={column.Id} column={column} projectId={projectId} invalidate={router.invalidate} />
+        {columns?.map((column) => (
+          <Column key={column.Id} column={column} onSubmit={async (data) => {
+            await createCard(projectId, data.columnId, data.cardContent);
+            router.invalidate();
+          }} />
         ))}
         <li className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
 
@@ -162,6 +227,6 @@ function RouteComponent() {
 
         </li>
       </Reorder.Group>
-    </main>
+    </main >
   )
 }

@@ -1,30 +1,18 @@
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Field, FieldGroup } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
-import { createFileRoute, Link, redirect, useRouter } from '@tanstack/react-router'
-import { getAuth, type User } from "firebase/auth";
-import { SignUpAuthScreen, GitHubSignInButton, GoogleSignInButton, SignInAuthScreen } from "@firebase-oss/ui-react";
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { getAuth } from "firebase/auth";
+import { GoogleSignInButton } from "@firebase-oss/ui-react";
 import { useState } from 'react';
 import { useForm } from '@tanstack/react-form'
 
 import {
   Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -84,22 +72,8 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-function LoginButton({ isLoggedIn, setUser }: { isLoggedIn: boolean, setUser: (arg0: User | null) => void }) {
-  if (isLoggedIn) {
-    return <button className='my-auto' onClick={() => {
-      getAuth().signOut();
-      setUser(null)
-      //TODO: remove cached data (queryClient.invalidateQueries()?)
-    }}>Logout</button>
-  } else {
-    return <Link className='my-auto' to="/login">Login</Link>
-  }
-}
-
 function Home() {
   const [user, setUser] = useState(getAuth().currentUser);
-
-  const navigate = Route.useNavigate();
 
   const projects = Route.useLoaderData();
 
@@ -110,12 +84,6 @@ function Home() {
       projectName: '',
     },
     onSubmit: async (data) => {
-      // let newProject: Project = {
-      //   Id = "placeholder",
-      //   Name = data.value.projectName,
-      //   OwnerId = "placeholder",
-      // }
-      // queryClient.setQueryData(['todos'], todos)
       await createProject(data.value.projectName);
       router.invalidate();
     },
@@ -129,8 +97,7 @@ function Home() {
         <p className='text-[16] text-[var(--tertiary)]'>Log in to your account</p>
         <br />
         <div className='grid gap-[8px]'>
-          <GoogleSignInButton onSignIn={() => setUser(getAuth().currentUser)} />
-          <GitHubSignInButton onSignIn={() => setUser(getAuth().currentUser)} />
+          <GoogleSignInButton onSignIn={() => { setUser(getAuth().currentUser); router.invalidate() }} />
         </div>
       </main>
     )

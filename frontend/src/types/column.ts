@@ -10,3 +10,14 @@ export type ColumnData = {
   Cards: CardData[];
 }
 
+export type ProjectData = {
+  Id: string,
+  OwnerId: string,
+  Name: string,
+  Columns: ColumnData[],
+}
+
+export type ColumnForm = {
+  cardContent: string,
+  columnId: string,
+}

@@ -79,13 +79,15 @@ app.UseCors();
 app.UseAuthentication();
 // app.UseAuthorization();
 
+app.MapGroup("/project")
+    .MapProjectEndpoint();
+
 app.MapGroup("/projects")
     // .RequireAuthorization()
     .MapProjectsEndpoint()
         .MapGroup("{projectId}/columns")
         .MapColumnEndpoint()
             .MapGroup("{columnId}/cards")
-            .MapCardEndpoint()
-    ;
+            .MapCardEndpoint();
 
 app.Run();
