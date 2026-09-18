@@ -11,6 +11,7 @@ public class ProjectService(DatabaseContext db)
     {
         var project = db.Projects.Where(project => project.Id == projectId).Single();
         db.Projects.Remove(project);
+        await db.SaveChangesAsync();
     }
 
     public async Task<Project> GetProject(string projectId)
