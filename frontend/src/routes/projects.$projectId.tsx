@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router'
 import { getAuth } from 'firebase/auth';
 import { useForm } from '@tanstack/react-form'
 import { Column } from '#/components/Column';
@@ -8,9 +8,41 @@ import { Reorder } from "motion/react"
 import { useState } from 'react';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import { Button } from '#/components/ui/button';
-import { ChevronLeftIcon, Ellipsis, PlusIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '#/components/ui/dialog';
+import { ChevronLeftIcon, TrashIcon, PlusIcon } from 'lucide-react';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '#/components/ui/dialog';
 import { useQuery } from '@tanstack/react-query';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#/components/ui/alert-dialog';
+
+async function deleteProject(projectId: string) {
+  const user = getAuth().currentUser;
+  if (user == null) {
+    console.log("User is not logged in")
+    return;
+  }
+  const idToken = await user.getIdToken(true);
+
+  try {
+    await fetch(`http://localhost:5001/project/${projectId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${idToken}`
+      }
+      // TODO: add body
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 async function createCard(projectId: string, columnId: string, content: string) {
   const user = getAuth().currentUser;
@@ -24,8 +56,6 @@ async function createCard(projectId: string, columnId: string, content: string) 
     await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnId}/cards/${content}`, {
       method: "POST",
       headers: {
-        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
-        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
         "Authorization": `Bearer ${idToken}`
       }
       // TODO: add body
@@ -48,8 +78,6 @@ async function createColumn(projectId: string, columnName: string) {
     const response = await fetch(`http://localhost:5001/projects/${projectId}/columns/${columnName}`, {
       method: "POST",
       headers: {
-        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
-        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
         "Authorization": `Bearer ${idToken}`
       }
     });
@@ -135,6 +163,8 @@ function RouteComponent() {
 
   const router = useRouter();
 
+  const navigate = useNavigate();
+
   const columnForm = useForm({
     defaultValues: {
       columnName: '',
@@ -156,8 +186,31 @@ function RouteComponent() {
         ) : (
           <h1 className='my-auto'>Loading...</h1>
         )}
-        <Ellipsis className='text-white my-auto mr-[24px] ml-auto' />
-      </nav>
+
+        <div className='ml-auto mr-[20px] my-auto text-[var(--tertiary)]'>
+          <AlertDialog>
+            <AlertDialogTrigger>
+              <TrashIcon />
+            </AlertDialogTrigger>
+            <AlertDialogContent className='bg-[var(--card-bg)] border-[var(--border)]'>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your
+                  kanban board.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => {
+                  await deleteProject(projectId);
+                  navigate({ to: '/' });
+                }}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </nav >
 
       <Reorder.Group axis='x' className='flex flex-nowrap flex-row mx-auto overflow-scroll scrollbar-auto scrollbar-thin h-[calc(100%-56px)]' values={orderedColumns} onReorder={setOrderedColumns}>
         {columns?.map((column) => (

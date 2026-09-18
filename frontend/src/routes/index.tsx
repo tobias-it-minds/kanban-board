@@ -56,8 +56,6 @@ async function createProject(projectName: string) {
     await fetch(`http://localhost:5001/projects/${projectName}`, {
       method: "POST",
       headers: {
-        "Access-Control-Allow-Credentials": "true", // TODO: is this necessary?
-        "Access-Control-Allow-Origin": "http://localhost:3001/", // TODO: dont use wildcard
         "Authorization": `Bearer ${idToken}`
       }
     });
@@ -109,8 +107,8 @@ function Home() {
         <h1 className='app-name my-auto'>Kanvas</h1>
         <button className='my-auto' onClick={() => {
           getAuth().signOut();
-          setUser(null)
-          //TODO: remove cached data (queryClient.invalidateQueries()?)
+          setUser(null);
+          router.invalidate();
         }}>Logout</button>
       </nav>
 
