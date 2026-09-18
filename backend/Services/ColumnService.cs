@@ -12,6 +12,7 @@ public class ColumnService(DatabaseContext db)
     {
         var columns = db.Columns
             .Where(column => column.ProjectId == projectId)
+            .OrderBy(column => column.OrderNr)
             .Include(columns => columns.Cards);
 
         return columns.ToList();
@@ -20,12 +21,14 @@ public class ColumnService(DatabaseContext db)
     public async Task CreateColumn(string projectId, string name)
     {
         var project = db.Projects.Where(project => project.Id == projectId).Single();
+        var columns = db.Columns.Where(columns => columns.ProjectId == project.Id);
 
         var column = new Column
         {
             ProjectId = project.Id,
             Id = Guid.NewGuid().ToString(),
             Name = name,
+            OrderNr = columns.Count() + 1,
         };
 
         project.Columns.Add(column);
