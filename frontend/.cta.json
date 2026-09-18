@@ -1,19 +1,21 @@
 {
-  "projectName": "kanban",
+  "projectName": "kanvas",
   "mode": "file-router",
   "typescript": true,
   "packageManager": "npm",
-  "includeExamples": true,
+  "includeExamples": false,
   "tailwind": true,
   "projectPreset": "default",
   "addOnOptions": {},
-  "git": true,
+  "git": false,
   "install": true,
   "intent": true,
   "routerOnly": false,
   "version": 1,
   "framework": "react",
   "chosenAddOns": [
-    "eslint"
+    "eslint",
+    "shadcn",
+    "tanstack-query"
   ]
 }

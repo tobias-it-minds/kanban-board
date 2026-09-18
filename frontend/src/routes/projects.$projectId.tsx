@@ -6,6 +6,10 @@ import type { ColumnData } from '#/types/column';
 
 import { Reorder } from "motion/react"
 import { useState } from 'react';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
+import { Button } from '#/components/ui/button';
+import { ChevronLeftIcon, PlusIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '#/components/ui/dialog';
 
 async function createColumn(projectId: string, columnName: string) {
   console.log("from create column")
@@ -87,7 +91,9 @@ function RouteComponent() {
   return (
     <main className='h-[100vh] bg-[var(--column-bg)]'>
       <nav className='h-[56px] flex flex-row border border-[var(--border)]'>
-        <Link className='my-auto mx-[16px] text-[20px] text-[var(--tertiary)] font-bold' to='/'>&#60;</Link>
+        <Link className='my-auto mx-[16px] text-[20px] text-[var(--tertiary)] font-bold' to='/'>
+          <ChevronLeftIcon />
+        </Link>
         <h1 className='my-auto'>project.name</h1>
       </nav>
 
@@ -95,39 +101,67 @@ function RouteComponent() {
         {orderedColumns?.map((column) => (
           <Column key={column.Id} column={column} projectId={projectId} invalidate={router.invalidate} />
         ))}
+        <li className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
+
+          <Dialog>
+            <DialogTrigger className='min-w-[384px]'>
+              <div className='m-[16px]'>
+                <Card className='mb-[16px] border-dashed'>
+                  <CardHeader>
+                    <CardTitle className='my-auto text-[20px]'></CardTitle>
+                    <Button variant="outline" size="icon" aria-label="Add" className='border-[var(--border)] border-[var(--tertiary)] m-auto'>
+                      <PlusIcon className='text-[var(--tertiary)]' />
+                    </Button>
+                    <CardContent className='text-[16px] text-[var(--tertiary)] m-auto'>
+                      Add new Column
+                    </CardContent>
+                  </CardHeader>
+                </Card>
+              </div>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New Card</DialogTitle>
+                <DialogDescription>
+
+                  <form
+                    className='border rounded-[16px] border-[var(--border)]'
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      columnForm.handleSubmit()
+                    }}
+                  >
+                    <columnForm.Field
+                      name='columnName'
+                      children={(field) => {
+                        return (
+                          <>
+                            <label>Column Name: </label>
+                            <input
+                              id={field.name}
+                              name={field.name}
+                              value={field.state.value}
+                              onChange={(e) => field.handleChange(e.target.value)}
+                            />
+                          </>
+                        )
+                      }}
+                    />
+                    <columnForm.Subscribe
+                      children={() =>
+                        <button type='submit'>Create Column</button>
+                      }
+                    />
+                  </form>
+
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+
+        </li>
       </Reorder.Group>
-      <div className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
-        <form
-          className='border rounded-[16px] border-[var(--border)]'
-          onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            columnForm.handleSubmit()
-          }}
-        >
-          <columnForm.Field
-            name='columnName'
-            children={(field) => {
-              return (
-                <>
-                  <label>Column Name: </label>
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                </>
-              )
-            }}
-          />
-          <columnForm.Subscribe
-            children={() =>
-              <button type='submit'>Create Column</button>
-            }
-          />
-        </form>
-      </div>
     </main>
   )
 }

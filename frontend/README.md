@@ -42,6 +42,15 @@ npm run check
 ```
 
 
+## Shadcn
+
+Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+
+```bash
+pnpm dlx shadcn@latest add button
+```
+
+
 
 ## Routing
 
@@ -185,10 +194,6 @@ function PeopleComponent() {
 
 Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
 
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
 
 
 # Learn More

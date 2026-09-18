@@ -1,24 +1,21 @@
-import { createRouter as createTanStackRouter, ErrorComponent, Link } from '@tanstack/react-router'
+import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
+import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import { getContext } from './integrations/tanstack-query/root-provider'
+
 export function getRouter() {
+  const context = getContext()
+
   const router = createTanStackRouter({
     routeTree,
+    context,
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
-    defaultErrorComponent: ({ error }) => (
-      <ErrorComponent error={error} />
-    ),
-    defaultNotFoundComponent: () => {
-      return (
-        <div>
-          <p>Not found!</p>
-          <Link to="/">Go home</Link>
-        </div>
-      )
-    },
   })
+
+  setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })
 
   return router
 }

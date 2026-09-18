@@ -4,6 +4,7 @@
 
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-inter: "Inter"
 }
 
 .page-greeting {
