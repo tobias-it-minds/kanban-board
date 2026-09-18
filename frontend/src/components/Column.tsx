@@ -46,7 +46,7 @@ export function Column({ column, projectId, invalidate }: { column: ColumnData, 
   const [orderedCards, setOrderedCards] = useState(column.Cards);
 
   return (
-    <Reorder.Item as="div" value={column} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
+    <Reorder.Item as="div" value={column} key={column.Id} className='min-w-[384px] bg-[var(--column-bg)] border-[var(--border)] border-1 border'>
       <div className='m-[16px]'>
         <Card className='mb-[16px]'>
           <CardHeader>

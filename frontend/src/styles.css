@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter');
 @import "tailwindcss";
+@import '@firebase-oss/ui-styles/dist.min.css';
 @plugin "@tailwindcss/typography";
 
 @theme {

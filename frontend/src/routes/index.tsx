@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { createFileRoute, Link, redirect, useRouter } from '@tanstack/react-router'
-import { getAuth } from "firebase/auth";
+import { getAuth, type User } from "firebase/auth";
+import { SignUpAuthScreen, GitHubSignInButton, GoogleSignInButton, SignInAuthScreen } from "@firebase-oss/ui-react";
 import { useState } from 'react';
 import { useForm } from '@tanstack/react-form'
 
@@ -83,11 +84,11 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIsLoggedIn: (arg0: boolean) => void }) {
+function LoginButton({ isLoggedIn, setUser }: { isLoggedIn: boolean, setUser: (arg0: User | null) => void }) {
   if (isLoggedIn) {
     return <button className='my-auto' onClick={() => {
       getAuth().signOut();
-      setIsLoggedIn(false)
+      setUser(null)
       //TODO: remove cached data (queryClient.invalidateQueries()?)
     }}>Logout</button>
   } else {
@@ -96,7 +97,9 @@ function LoginButton({ isLoggedIn, setIsLoggedIn }: { isLoggedIn: boolean, setIs
 }
 
 function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(getAuth().currentUser != null);
+  const [user, setUser] = useState(getAuth().currentUser);
+
+  const navigate = Route.useNavigate();
 
   const projects = Route.useLoaderData();
 
@@ -117,17 +120,38 @@ function Home() {
       router.invalidate();
     },
   });
+
+  if (user == null) {
+    return (
+      <main className='w-[384px] mx-auto pt-[40px] bg-[var(--page-bg)]'>
+        <br />
+        <h1 className='text-[32px]'>Welcome</h1>
+        <p className='text-[16] text-[var(--tertiary)]'>Log in to your account</p>
+        <br />
+        <div className='grid gap-[8px]'>
+          <GoogleSignInButton onSignIn={() => setUser(getAuth().currentUser)} />
+          <GitHubSignInButton onSignIn={() => setUser(getAuth().currentUser)} />
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main >
       <nav className='w-[var(--width)] h-[50px] flex flex-row place-content-between m-auto'>
         <h1 className='app-name my-auto'>Kanvas</h1>
-        <LoginButton isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <button className='my-auto' onClick={() => {
+          getAuth().signOut();
+          setUser(null)
+          //TODO: remove cached data (queryClient.invalidateQueries()?)
+        }}>Logout</button>
       </nav>
 
       <hr className='text-[var(--border)]' />
 
-
       <div className='w-[var(--width)] m-auto'>
+        <p className="page-greeting text-[var(--tertiary)] mt-[16px]">Good Morning,</p>
+        <h1 className="dashboard-heading mb-[40px]">{user?.displayName}</h1>
 
         <div className='flex place-content-between  my-[16px]'>
           <h1 className='section-heading'>Projects</h1>
@@ -136,42 +160,38 @@ function Home() {
               <h1 className='section-heading text-[var(--brand)]'>+ New project</h1>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Project</DialogTitle>
-                <DialogDescription>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      form.handleSubmit()
-                    }}
-                  >
-                    <form.Field
-                      name='projectName'
-                      children={(field) => {
-                        return (
-                          <>
-                            <label>Project Name: </label>
-                            <input
-                              id={field.name}
-                              name={field.name}
-                              value={field.state.value}
-                              onChange={(e) => field.handleChange(e.target.value)}
-                            />
-                          </>
-                        )
-                      }}
-                    />
-                    <form.Subscribe
-                      children={() =>
-                        <>
-                          <button type='submit'>Create Project</button>
-                        </>
-                      }
-                    />
-                  </form>
-                </DialogDescription>
-              </DialogHeader>
+              <DialogTitle>Edit Project</DialogTitle>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  form.handleSubmit()
+                }}
+              >
+                <form.Field
+                  name='projectName'
+                  children={(field) => {
+                    return (
+                      <>
+                        <label>Project Name: </label>
+                        <input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </>
+                    )
+                  }}
+                />
+                <form.Subscribe
+                  children={() =>
+                    <>
+                      <button type='submit'>Create Project</button>
+                    </>
+                  }
+                />
+              </form>
             </DialogContent>
           </Dialog>
 
@@ -184,15 +204,17 @@ function Home() {
               <Card>
                 <CardHeader>
                   <CardTitle>{project.Name}</CardTitle>
+                </CardHeader>
+                {/*
                   <CardDescription>Card Description</CardDescription>
                   <CardAction>Edit</CardAction>
-                </CardHeader>
                 <CardContent>
                   <p>Card Content</p>
                 </CardContent>
                 <CardFooter>
                   <p>Card Footer</p>
                 </CardFooter>
+                */}
               </Card>
 
             </Link>
